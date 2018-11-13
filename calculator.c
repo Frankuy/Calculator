@@ -60,39 +60,14 @@ int main() {
 	/* Menerima input user */
 	scanf("%s", ekspresi);
 	START(ekspresi);
+
+	/* Pengecekan masukan apakah diterima */
+
+
+
+	/* Perhitungan ekspresi masukan */
 	float hasil = parseExpression();
-	printf("%f\n", hasil);
-
-	/*1. Mengecek input dari pengguna sesuai dengan simbol terminal dan rules yang ada */
-/*	
-	printf("%.2f", parseFactor());
-*/
-
-
-
-
-	/*while (!EOP) {
-		if (!IsTerminal(CC)) {
-			printf("SYNTAX ERROR");
-			NextStep = false;
-			break;
-		}
-		else {
-			
-		}
-	}*/
-
-	
-
-	/* Mengecek apakah ekspresi bisa dioperasikan */
-/*	if (NextStep) {
-		printf("\nPeriksa ekspresi");
-	}										*/
-	
-	/* Lakukan operasi dan tampilkan hasil di layar */
-/*	if (NextStep) {
-		printf("\nLakukan Operasi");
-	}										*/
+	printf("%.2f\n", hasil);
 
 	return 0;
 }
@@ -139,16 +114,15 @@ float parseMultiDigit() {
 	float factor, pembagi;
 	
 	/* ALGORITMA */
-	factor = (float) parseDigit();
+	factor = parseDigit();
 	while (IsNumber(CC)) {
 		factor = factor*10 + parseDigit();
 	}
-	
 	if (CC == '.') {
 		ADV(ekspresi);
 		pembagi = 10;
 		while (IsNumber(CC)) {
-			factor += (parseDigit()/pembagi);
+			factor += parseDigit()/pembagi;
 			pembagi*=10;
 		}
 	}
@@ -161,56 +135,42 @@ float parseExpression() {
 	
 	/* ALGORITMA */
 	factor = parseTambahKurang();
-	if (CC == '\0') {
-		return factor;
-	}
+	return factor;
 }
 
 float parseFactor() {
 	/* KAMUS LOKAL */
-//	boolean sign;
 	float factor;
 	
 	/* ALGORITMA */
 	if (CC == '(') {
 		ADV(ekspresi);
-		factor = parseTambahKurang();
+		factor = parseExpression();
 		ADV(ekspresi);
 	}
 	else if (IsNumber(CC)) {
 		factor = parseMultiDigit();
 	}
-/*	if (CC == '-') {
-		sign = true;
-		ADV(ekspresi);
-	}
-	else {
-		sign = false;
-	}	*/
-	
-/*	if (sign) {
-		return -1*factor;
-	}
-	else {		
-*/		return factor;
-//	}
+	return factor;
 }
 
 float parseTambahKurang() {
 	/* KAMUS LOKAL */
 	float bil1, bil2;
+	char operator;
 	
 	/* ALGORITMA */
 	bil1 = parseKaliBagi();
-	while (CC == '+') {
+	while ((CC == '+') || (CC == '-')) {
+		operator = CC;
 		ADV(ekspresi);
 		bil2 = parseKaliBagi();
-		bil1 += bil2;
-	}
-	while (CC == '-') {
-		ADV(ekspresi);
-		bil2 = parseKaliBagi();
-		bil1 -= bil2;
+		if (operator == '+') {
+			bil1 += bil2;
+		}
+		else if (operator == '-') {
+			bil1 -= bil2;
+		}	
 	}
 	return bil1;
 }
@@ -218,18 +178,20 @@ float parseTambahKurang() {
 float parseKaliBagi() {
 	/* KAMUS LOKAL */
 	float bil1, bil2;
+	char operator;
 	
 	/* ALGORITMA */
 	bil1 = parseFactor();
-	while (CC == '*') {
+	while ((CC == '*') || (CC == '/')) {
+		operator = CC;
 		ADV(ekspresi);
-		bil2 = parseKaliBagi();
-		bil1 *= bil2;
-	}
-	while (CC == '/') {
-		ADV(ekspresi);
-		bil2 = parseKaliBagi();
-		bil1 /= bil2;
+		bil2 = parseFactor();
+		if (operator == '*') {
+			bil1 *= bil2;
+		}
+		else if (operator == '/') {
+			bil1 /= bil2;
+		}
 	}
 	return bil1;
 }
