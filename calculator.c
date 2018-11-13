@@ -26,7 +26,6 @@ A -> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | AA --DIGIT atau ANGKA
 #include <stdio.h>
 #include "mesinkar.h"
 #include "boolean.h"
-#include "stackt.h"
 
 /**** KAMUS GLOBAL ****/
 char terminal[18] = {'0','1','2','3','4','5','6','7','8','9','+','-','/','*','^','.','(',')'}; //simbol terminal
@@ -42,22 +41,32 @@ boolean IsOperator(char C);
 /* Mengecek apakah C adalah Operator */
 int parseDigit();
 /* Memparsing string yang merupakan sebuah factor */ 
+float parseMultiDigit();
+/* Memparsing string yang merupakan angka yang memiliki lebih dari 1 digit */ 
+float parseExpression();
+/* Memparsing string yang merupakan ekspresi keseluruhan */ 
 float parseFactor();
 /* Memparsing string yang merupakan perkalian dua factor */
+float parseTambahKurang();
+/* Memparsing string yang merupakan hasil pertambahan atau pengurangan dua bilangan */
+float parseKaliBagi();
+/* Memparsing string yang merupakan hasil perkalian atau pembagian dua bilangan */
 
 /**** MAIN PROGRAM ****/
 int main() {
-	/**** KAMUS MAIN ****/
-	
+	/**** KAMUS UTAMA ****/
 
 	/**** ALGORITMA ****/
 	/* Menerima input user */
 	scanf("%s", ekspresi);
+	START(ekspresi);
+	float hasil = parseExpression();
+	printf("%f\n", hasil);
 
 	/*1. Mengecek input dari pengguna sesuai dengan simbol terminal dan rules yang ada */
-	START(ekspresi);
+/*	
 	printf("%.2f", parseFactor());
-
+*/
 
 
 
@@ -76,22 +85,24 @@ int main() {
 	
 
 	/* Mengecek apakah ekspresi bisa dioperasikan */
-	if (NextStep) {
+/*	if (NextStep) {
 		printf("\nPeriksa ekspresi");
-	}
+	}										*/
 	
 	/* Lakukan operasi dan tampilkan hasil di layar */
-	if (NextStep) {
+/*	if (NextStep) {
 		printf("\nLakukan Operasi");
-	}
+	}										*/
 
 	return 0;
 }
 
 boolean IsTerminal(char C) {
+	/* KAMUS lOKAL */
 	int i = 0;
 	boolean exist = false;
-
+	
+	/* ALGORITMA */
 	while ((i <= 17) && (!exist)) {
 		if (C == terminal[i]) {
 			exist = true;
@@ -112,41 +123,113 @@ boolean IsOperator(char C) {
 }
 
 int parseDigit() {
+	/* KAMUS LOKAL */
+	int bilangan;
+	
+	/* ALGORITMA */
 	if (IsNumber(CC)) {
-		int bilangan = CC - '0';
+		bilangan = CC - '0';
 		ADV(ekspresi);
 		return bilangan;
 	}
 }
 
-float parseFactor() {
-	boolean sign;
-	if (CC == '-') {
-		sign = true;
-		ADV(ekspresi);
-	}
-	else {
-		sign = false;
-		ADV(ekspresi);
-	}
-	float factor = (float) parseDigit();
+float parseMultiDigit() {
+	/* KAMUS lOKAL */
+	float factor, pembagi;
+	
+	/* ALGORITMA */
+	factor = (float) parseDigit();
 	while (IsNumber(CC)) {
 		factor = factor*10 + parseDigit();
 	}
+	
 	if (CC == '.') {
 		ADV(ekspresi);
-		float pembagi = 10;
+		pembagi = 10;
 		while (IsNumber(CC)) {
 			factor += (parseDigit()/pembagi);
 			pembagi*=10;
 		}
 	}
-	if (sign) {
-		return -1*factor;
-	}
-	else {
+	return factor;
+}
+
+float parseExpression() {
+	/* KAMUS LOKAL */
+	float factor;
+	
+	/* ALGORITMA */
+	factor = parseTambahKurang();
+	if (CC == '\0') {
 		return factor;
 	}
 }
 
+float parseFactor() {
+	/* KAMUS LOKAL */
+//	boolean sign;
+	float factor;
+	
+	/* ALGORITMA */
+	if (CC == '(') {
+		ADV(ekspresi);
+		factor = parseTambahKurang();
+		ADV(ekspresi);
+	}
+	else if (IsNumber(CC)) {
+		factor = parseMultiDigit();
+	}
+/*	if (CC == '-') {
+		sign = true;
+		ADV(ekspresi);
+	}
+	else {
+		sign = false;
+	}	*/
+	
+/*	if (sign) {
+		return -1*factor;
+	}
+	else {		
+*/		return factor;
+//	}
+}
 
+float parseTambahKurang() {
+	/* KAMUS LOKAL */
+	float bil1, bil2;
+	
+	/* ALGORITMA */
+	bil1 = parseKaliBagi();
+	while (CC == '+') {
+		ADV(ekspresi);
+		bil2 = parseKaliBagi();
+		bil1 += bil2;
+	}
+	while (CC == '-') {
+		ADV(ekspresi);
+		bil2 = parseKaliBagi();
+		bil1 -= bil2;
+	}
+	return bil1;
+}
+
+float parseKaliBagi() {
+	/* KAMUS LOKAL */
+	float bil1, bil2;
+	
+	/* ALGORITMA */
+	bil1 = parseFactor();
+	while (CC == '*') {
+		ADV(ekspresi);
+		bil2 = parseKaliBagi();
+		bil1 *= bil2;
+	}
+	while (CC == '/') {
+		ADV(ekspresi);
+		bil2 = parseKaliBagi();
+		bil1 /= bil2;
+	}
+	return bil1;
+}
