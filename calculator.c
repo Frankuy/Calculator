@@ -26,11 +26,13 @@ A -> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | AA --DIGIT atau ANGKA
 #include <stdio.h>
 #include "mesinkar.h"
 #include "boolean.h"
+#include "math.h"
 
 /**** KAMUS GLOBAL ****/
 char terminal[18] = {'0','1','2','3','4','5','6','7','8','9','+','-','/','*','^','.','(',')'}; //simbol terminal
 char ekspresi[50]; //Asumsi maksimum input user berupa 50 simbol terminal
 boolean NextStep = true; //untuk menentukan apakah perlu dilakukan step selanjutnya
+boolean Syntax = true;
 
 /**** FUNGSI ****/
 boolean IsTerminal(char C);
@@ -54,21 +56,24 @@ float parseKaliBagi();
 
 /**** MAIN PROGRAM ****/
 int main() {
-	/**** KAMUS UTAMA ****/
-
 	/**** ALGORITMA ****/
 	/* Menerima input user */
 	scanf("%s", ekspresi);
 	START(ekspresi);
-
-	/* Pengecekan masukan apakah diterima */
-
-
-
-	/* Perhitungan ekspresi masukan */
-	float hasil = parseExpression();
-	printf("%.2f\n", hasil);
-
+	
+	if ((CC != '*') && (CC != '/') && (CC != '^') && (CC != ')')) {
+		float hasil = parseExpression();
+		if (Syntax) {
+			printf("%f\n", hasil);
+		}
+		else {
+			printf("SYNTAX ERROR\n");
+		}
+	}
+	else {
+		printf("SYNTAX ERROR\n");
+	}
+	
 	return 0;
 }
 
@@ -104,9 +109,13 @@ int parseDigit() {
 	/* ALGORITMA */
 	if (IsNumber(CC)) {
 		bilangan = CC - '0';
-		ADV(ekspresi);
-		return bilangan;
 	}
+	else if (CC == '.') {
+		bilangan = 0;
+	}
+	ADV(ekspresi);
+	
+	return bilangan;
 }
 
 float parseMultiDigit() {
@@ -120,10 +129,18 @@ float parseMultiDigit() {
 	}
 	if (CC == '.') {
 		ADV(ekspresi);
-		pembagi = 10;
-		while (IsNumber(CC)) {
-			factor += parseDigit()/pembagi;
-			pembagi*=10;
+		if (IsNumber(CC)) {
+			pembagi = 10;
+			while (IsNumber(CC)) {
+				factor += parseDigit()/pembagi;
+				pembagi *= 10;
+				if (CC == '.') {
+					Syntax = false;
+				}
+			}
+		}
+		else if (CC == '.') {
+			Syntax = false;	
 		}
 	}
 	return factor;
@@ -145,11 +162,34 @@ float parseFactor() {
 	/* ALGORITMA */
 	if (CC == '(') {
 		ADV(ekspresi);
-		factor = parseExpression();
-		ADV(ekspresi);
+		if ((CC != '*') && (CC != '/') && (CC != '^') && (CC != ')')) {
+			factor = parseExpression();
+			ADV(ekspresi);
+		}
+		else {
+			Syntax = false;
+		}
 	}
-	else if (IsNumber(CC)) {
+	if (IsNumber(CC)) {
 		factor = parseMultiDigit();
+	}
+	else if (CC == '-') {
+		ADV(ekspresi);
+		if ((CC != '*') && (CC != '/') && (CC != '^') && (CC != ')')) {
+			factor = -parseMultiDigit();
+		}
+		else {
+			Syntax = false;
+		}
+	}
+	if (CC == '^') {
+		ADV(ekspresi);
+		if ((CC != '*') && (CC != '/') && (CC != '^') && (CC != ')')) {
+			factor = pow(factor, parseFactor());
+		}
+		else {
+			Syntax = false;
+		}
 	}
 	return factor;
 }
@@ -164,13 +204,21 @@ float parseTambahKurang() {
 	while ((CC == '+') || (CC == '-')) {
 		operator = CC;
 		ADV(ekspresi);
-		bil2 = parseKaliBagi();
-		if (operator == '+') {
-			bil1 += bil2;
+		if (CC == '+') {
+			ADV(ekspresi);
 		}
-		else if (operator == '-') {
-			bil1 -= bil2;
-		}	
+		if (IsNumber(CC)) {
+			bil2 = parseKaliBagi();
+			if (operator == '+') {
+				bil1 += bil2;
+			}
+			else if (operator == '-') {
+				bil1 -= bil2;
+			}
+		}
+		else if ((CC == '*') || (CC == '/') || (CC == '^') || (CC == ')')) {
+			Syntax = false;
+		}
 	}
 	return bil1;
 }
@@ -185,12 +233,17 @@ float parseKaliBagi() {
 	while ((CC == '*') || (CC == '/')) {
 		operator = CC;
 		ADV(ekspresi);
-		bil2 = parseFactor();
-		if (operator == '*') {
-			bil1 *= bil2;
+		if (IsNumber(CC)) {
+			bil2 = parseFactor();
+			if (operator == '*') {
+				bil1 *= bil2;
+			}
+			else if (operator == '/') {
+				bil1 /= bil2;
+			}	
 		}
-		else if (operator == '/') {
-			bil1 /= bil2;
+		else if ((CC == '*') || (CC == '/') || (CC == '^') || (CC == ')')) {
+			Syntax = false;
 		}
 	}
 	return bil1;
