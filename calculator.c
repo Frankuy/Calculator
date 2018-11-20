@@ -1,6 +1,6 @@
 /* 	Membuat Calculator dengan mengimplementasikan Context-Free-Language/PushDown-Automata
 	13517077 Dandi Agus Maulana
-	13517080 Mgs. Muhammad Riandi Ramadhan 
+	13517080 Mgs. Muhammad Riandi Ramadhan
 	13517104 Muhammad Fikri Hizbullah
 */
 /*
@@ -62,11 +62,10 @@ double parseEkspresi();
 
 void main() {
 	/**** ALGORITMA ****/
-	while (strcmp(ekspresi,"exit")==0) {
-		/* Menerima input user */
-		scanf("%s", ekspresi);
-		START(ekspresi);
-	
+	/* Menerima input user */
+	scanf("%s", ekspresi);
+    START(ekspresi);
+	while (strcmp(ekspresi,"exit")!=0) {
 		/* Memvalidasi input */
 		double result = parseEkspresi();
 
@@ -82,6 +81,9 @@ void main() {
 		if (SyntaxValid && MathValid) {
 			printf("%lf\n", result);
 		}
+
+		scanf("%s", ekspresi);
+		START(ekspresi);
 	}
 }
 
@@ -89,7 +91,7 @@ boolean IsTerminal(char C) {
 	/* KAMUS lOKAL */
 	int i = 0;
 	boolean exist = false;
-	
+
 	/* ALGORITMA */
 	while ((i <= 17) && (!exist)) {
 		if (C == terminal[i]) {
@@ -137,7 +139,7 @@ double parseMinusDesimal(){
 		factor = parseEkspresi();
 		while (CC == '(') {
 			ADV(ekspresi);
-			factor *= parseKaliBagi();		
+			factor *= parseKaliBagi();
 		}
 		if (CC == ')') {
 			ADV(ekspresi);
