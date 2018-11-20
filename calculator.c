@@ -81,7 +81,8 @@ void main() {
 		if (SyntaxValid && MathValid) {
 			printf("%lf\n", result);
 		}
-
+		
+		SyntaxValid = true; MathValid = true;
 		scanf("%s", ekspresi);
 		START(ekspresi);
 	}
